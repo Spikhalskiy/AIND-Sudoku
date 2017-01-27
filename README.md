@@ -3,11 +3,19 @@
 
 # Question 1 (Naked Twins)
 Q: How do we use constraint propagation to solve the naked twins problem?  
-A: *Student should provide answer here*
+A: 
+
+We create collection of all potential twins in sudoku - dict of twins value to twins boxes.
+
+After that we go through all units and if unit contains twins we remove digits from twins value from other unit boxes.
+
+As a result no boxes in any unit outside the two naked twins squares can contain the twin digits.
 
 # Question 2 (Diagonal Sudoku)
 Q: How do we use constraint propagation to solve the diagonal sudoku problem?  
-A: We just add two diagonal units in general units collections, which leads to:
+A: 
+
+We just add two diagonal units in general units collections, which leads to:
 
 ```eliminate``` function for finalized boxes on diagonals eliminates it's values from boxes in related diagonal units.
 

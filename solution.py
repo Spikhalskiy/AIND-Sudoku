@@ -1,5 +1,15 @@
 assignments = []
 
+def assign_value(values, box, value):
+    """
+    Please use this function to update your values dictionary!
+    Assigns a value to a given box. If it updates the board record it.
+    """
+    values[box] = value
+    if len(value) == 1:
+        assignments.append(values.copy())
+    return values
+
 rows = 'ABCDEFGHI'
 cols = '123456789'
 
@@ -21,14 +31,51 @@ units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
 peers = dict((s, set(sum(units[s], [])) - {s}) for s in boxes)
 
 
-def assign_value(values, box, value):
+def eliminate_from_boxes_collection(values, boxes_collection, digit):
+    """Removes digit from all boxes in boxes_collection"""
+    for peer in boxes_collection:
+        assign_value(values, peer, values[peer].replace(digit, ''))
+
+
+def find_twins(values):
+    """Find all twins is sudoku, don't take into account unit/peers structure
+
+    Args:
+        values(dict): a dictionary of the form {'box_name': '123456789', ...}
+
+    Returns:
+        dict with a key is twins_value and value is set of boxes that have this twins_value"""
+    # dict with boxes as a key and set of boxes as a value
+    twins = {}
+    for v, box in [(values[box], box) for box in values.keys() if len(values[box]) == 2]:
+        if v in twins:
+            twins[v] .add(box)
+        else:
+            twins[v] = {box}
+    # Remove boxes which has 2-length value, but no pairs
+    return {v: boxs for (v, boxs) in twins.items() if len(boxs) > 1}
+
+
+def eliminate_twins(values, twins, unit):
+    """Eliminate twins from the unit
+
+    :param values: whole sudoku state
+    :param twins: dict with all twins, key is twins values, value is twins boxes set
+    :param unit: unit to search and eliminate twin values from
+    :return: new values state
     """
-    Please use this function to update your values dictionary!
-    Assigns a value to a given box. If it updates the board record it.
-    """
-    values[box] = value
-    if len(value) == 1:
-        assignments.append(values.copy())
+    for i in range(0, len(unit)):
+        box1 = unit[i]
+        box1_value = values[box1]
+        if box1_value in twins:
+            for j in range(i + 1, len(unit)):
+                box2 = unit[j]
+                if box2 in twins[box1_value]:
+                    # even if a value of this box is been modified already by other loop iteration - it's still fine
+                    # we could continue to safely consider them as twins
+                    for digit in box1_value:
+                        other_unit_boxes = [box for box in unit if box not in {box1, box2}]
+                        eliminate_from_boxes_collection(values, other_unit_boxes, digit)
     return values
 
 
@@ -42,8 +89,13 @@ def naked_twins(values):
     """
 
     # Find all instances of naked twins
-    # Eliminate the naked twins as possibilities for their peers
+    twins = find_twins(values)
 
+    # Eliminate the naked twins as possibilities for their peers
+    for unit in unitlist:
+        values = eliminate_twins(values, twins, unit)
+
+    return values
 
 
 def grid_values(grid):
@@ -93,8 +145,7 @@ def eliminate(values):
     solved_values = [box for box in values.keys() if len(values[box]) == 1]
     for box in solved_values:
         digit = values[box]
-        for peer in peers[box]:
-            assign_value(values, peer, values[peer].replace(digit, ''))
+        eliminate_from_boxes_collection(values, peers[box], digit)
     return values
 
 
@@ -127,6 +178,7 @@ def reduce_puzzle(values):
         solved_values_before = len([box for box in values.keys() if len(values[box]) == 1])
         values = eliminate(values)
         values = only_choice(values)
+        values = naked_twins(values)
         assert isinstance(values, dict)
         solved_values_after = len([box for box in values.keys() if len(values[box]) == 1])
         stalled = solved_values_before == solved_values_after
