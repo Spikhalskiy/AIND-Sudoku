@@ -189,11 +189,12 @@ def only_choice(values):
 
 def reduce_puzzle(values):
     """
-    Iterate eliminate() and only_choice(). If at some point, there is a box with no available values, return False.
+    Iterate eliminate(), only_choice() and naked_twins() if required.
+    If at some point, there is a box with no available values, return False.
     If the sudoku is solved, return the sudoku.
     If after an iteration of both functions, the sudoku remains the same, return the sudoku.
-    Input: A sudoku in dictionary form.
-    Output: The resulting sudoku in dictionary form.
+    :param values: A sudoku in a dictionary form.
+    :return: The resulting sudoku in dictionary form.
     """
     stalled = False
     while not stalled:
@@ -201,10 +202,16 @@ def reduce_puzzle(values):
         solved_values_before = len([box for box in values.keys() if len(values[box]) == 1])
         values = eliminate(values)
         values = only_choice(values)
-        values = naked_twins(values)
         assert isinstance(values, dict)
+
         solved_values_after = len([box for box in values.keys() if len(values[box]) == 1])
         stalled = solved_values_before == solved_values_after
+        # use an expensive naked twins only if stalled with basic methods
+        if stalled:
+            values = naked_twins(values)
+            solved_values_after = len([box for box in values.keys() if len(values[box]) == 1])
+            stalled = solved_values_before == solved_values_after
+
         if len([box for box in values.keys() if len(values[box]) == 0]):
             return False
     return values
