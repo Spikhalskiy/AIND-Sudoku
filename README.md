@@ -7,7 +7,11 @@ A: *Student should provide answer here*
 
 # Question 2 (Diagonal Sudoku)
 Q: How do we use constraint propagation to solve the diagonal sudoku problem?  
-A: *Student should provide answer here*
+A: We just add two diagonal units in general units collections, which leads to:
+
+```eliminate``` function for finalized boxes on diagonals eliminates it's values from boxes in related diagonal units.
+
+Thereby we include diagonal units to constraint propagation.
 
 ### Install
 

@@ -14,7 +14,9 @@ boxes = cross(rows, cols)
 row_units = [cross(r, cols) for r in rows]
 column_units = [cross(rows, c) for c in cols]
 square_units = [cross(rs, cs) for rs in ('ABC', 'DEF', 'GHI') for cs in ('123', '456', '789')]
-unitlist = row_units + column_units + square_units
+# To solve diagonal sudoku we add 2 units for two diagonals into units collection
+diag_units = [[a + b for (a, b) in zip(list(rows), list(cols))]] + [[a + b for (a, b) in zip(list(rows), list(cols[::-1]))]]
+unitlist = row_units + column_units + square_units + diag_units
 units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
 peers = dict((s, set(sum(units[s], [])) - {s}) for s in boxes)
 
