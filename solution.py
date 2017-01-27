@@ -1,5 +1,6 @@
 assignments = []
 
+
 def assign_value(values, box, value):
     """
     Please use this function to update your values dictionary!
@@ -9,6 +10,7 @@ def assign_value(values, box, value):
     if len(value) == 1:
         assignments.append(values.copy())
     return values
+
 
 rows = 'ABCDEFGHI'
 cols = '123456789'
@@ -20,15 +22,36 @@ def cross(a, b):
 
 
 boxes = cross(rows, cols)
+unitlist = []
+units = dict()
+peers = dict()
 
-row_units = [cross(r, cols) for r in rows]
-column_units = [cross(rows, c) for c in cols]
-square_units = [cross(rs, cs) for rs in ('ABC', 'DEF', 'GHI') for cs in ('123', '456', '789')]
-# To solve diagonal sudoku we add 2 units for two diagonals into units collection
-diag_units = [[a + b for (a, b) in zip(list(rows), list(cols))]] + [[a + b for (a, b) in zip(list(rows), list(cols[::-1]))]]
-unitlist = row_units + column_units + square_units + diag_units
-units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
-peers = dict((s, set(sum(units[s], [])) - {s}) for s in boxes)
+
+def init(diagonal=True):
+    """
+    Init internal variables to solve sudoku with specified parameters like if it should be diagonal or not
+    :param diagonal: True if solving sudoku should have diagonal constraints
+    :return: None
+    """
+
+    row_units = [cross(r, cols) for r in rows]
+    column_units = [cross(rows, c) for c in cols]
+    square_units = [cross(rs, cs) for rs in ('ABC', 'DEF', 'GHI') for cs in ('123', '456', '789')]
+
+    global unitlist
+    if diagonal:
+        # To solve diagonal sudoku we add 2 units for two diagonals into units collection
+        diag_units = [[a + b for (a, b) in zip(list(rows), list(cols))]] + [
+            [a + b for (a, b) in zip(list(rows), list(cols[::-1]))]]
+        unitlist = row_units + column_units + square_units + diag_units
+    else:
+        unitlist = row_units + column_units + square_units
+
+    global units
+    units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
+
+    global peers
+    peers = dict((s, set(sum(units[s], [])) - {s}) for s in boxes)
 
 
 def eliminate_from_boxes_collection(values, boxes_collection, digit):
@@ -49,7 +72,7 @@ def find_twins(values):
     twins = {}
     for v, box in [(values[box], box) for box in values.keys() if len(values[box]) == 2]:
         if v in twins:
-            twins[v] .add(box)
+            twins[v].add(box)
         else:
             twins[v] = {box}
     # Remove boxes which has 2-length value, but no pairs
@@ -209,15 +232,15 @@ def search(values):
             return attempt
 
 
-def solve(grid):
+def solve(grid, diagonal=True):
     """
     Find the solution to a Sudoku grid.
-    Args:
-        grid(string): a string representing a sudoku grid.
-            Example: '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
-    Returns:
-        The dictionary representation of the final sudoku grid. False if no solution exists.
+    :param grid: string serialized representation of a sudoku grid
+                Example: '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
+    :param diagonal: if you want to solve diagonal soduku or general one
+    :return: The dictionary representation of the final sudoku grid. False if no solution exists.
     """
+    init(diagonal)
     return search(grid_values(grid))
 
 
@@ -227,6 +250,7 @@ if __name__ == '__main__':
 
     try:
         from visualize import visualize_assignments
+
         visualize_assignments(assignments)
     except SystemExit:
         pass
